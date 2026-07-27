@@ -75,9 +75,20 @@ test("pickEnemyLetter forces the target letter when no active ship carries it", 
   assert.equal(letter, "B");
 });
 
-test("pickEnemyLetter returns a random letter when the target is already covered", () => {
+test("pickEnemyLetter returns a valid letter when the target is already covered", () => {
   for (let i = 0; i < 50; i++) {
     const letter = pickEnemyLetter(["B", "D"], "B");
     assert.ok(ALPHABET.includes(letter));
   }
+});
+
+test("pickEnemyLetter sometimes duplicates the target so multiple correct ships can coexist", () => {
+  let sawDuplicate = false;
+  for (let i = 0; i < 500; i++) {
+    if (pickEnemyLetter(["B"], "B") === "B") {
+      sawDuplicate = true;
+      break;
+    }
+  }
+  assert.ok(sawDuplicate);
 });

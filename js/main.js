@@ -1,6 +1,6 @@
 import { createInputState } from "./input.js";
 import { Player } from "./player.js";
-import { Enemy, ENEMY_WIDTH } from "./enemy.js";
+import { Enemy, ENEMY_HEIGHT, randomSpawnX, randomSpawnDelay } from "./enemy.js";
 import { Bullet, rectsOverlap } from "./bullets.js";
 import {
   createInitialState,
@@ -10,6 +10,8 @@ import {
   pickEnemyLetter,
   SLOWDOWN_FACTOR,
 } from "./letterSequence.js";
+import { createTrailEmitter } from "./particles.js";
+import { playShootSound, playCorrectHitSound } from "./audio.js";
 import { render } from "./render.js";
 
 const canvas = document.getElementById("game-canvas");
@@ -17,24 +19,35 @@ const ctx = canvas.getContext("2d");
 const targetLetterEl = document.getElementById("target-letter");
 const scoreEl = document.getElementById("score");
 const statusEl = document.getElementById("status-message");
+const moreShipsBtn = document.getElementById("btn-more-ships");
+const shipCountEl = document.getElementById("ship-count");
+const speedSlider = document.getElementById("speed-slider");
+const speedValueEl = document.getElementById("speed-value");
 
-const LANE_COUNT = 3;
-const laneWidth = canvas.width / LANE_COUNT;
-
-function laneX(index) {
-  return laneWidth * index + laneWidth / 2 - ENEMY_WIDTH / 2;
-}
+const SPAWN_MIN_MS = 500;
+const SPAWN_MAX_MS = 1400;
+const MAX_ENEMIES_CAP = 8;
 
 const input = createInputState();
 const player = new Player(canvas.width, canvas.height);
+const trail = createTrailEmitter();
 let bullets = [];
+let enemies = [];
 let letterState = createInitialState();
+let maxEnemies = 3;
+let spawnTimer = 0;
+let manualSpeedMultiplier = Number(speedSlider.value);
 
-const enemies = [];
-for (let i = 0; i < LANE_COUNT; i++) {
-  const activeLetters = enemies.map((e) => e.letter);
-  enemies.push(new Enemy(laneX(i), pickEnemyLetter(activeLetters, letterState.target)));
-}
+moreShipsBtn.addEventListener("click", () => {
+  maxEnemies = Math.min(MAX_ENEMIES_CAP, maxEnemies + 1);
+  shipCountEl.textContent = String(maxEnemies);
+  if (maxEnemies >= MAX_ENEMIES_CAP) moreShipsBtn.disabled = true;
+});
+
+speedSlider.addEventListener("input", () => {
+  manualSpeedMultiplier = Number(speedSlider.value);
+  speedValueEl.textContent = `${manualSpeedMultiplier.toFixed(1)}x`;
+});
 
 let statusTimeoutId = null;
 function showStatus(message) {
@@ -50,11 +63,10 @@ function updateHud() {
   scoreEl.textContent = String(letterState.score);
 }
 
-function respawnEnemy(enemy, laneIndex) {
-  const activeLetters = enemies.filter((e) => e !== enemy).map((e) => e.letter);
-  enemy.letter = pickEnemyLetter(activeLetters, letterState.target);
-  enemy.x = laneX(laneIndex);
-  enemy.y = -enemy.height;
+function spawnEnemy(letter) {
+  const x = randomSpawnX(canvas.width, enemies.map((e) => e.x));
+  const y = -ENEMY_HEIGHT - Math.random() * 40;
+  enemies.push(new Enemy(x, y, letter));
 }
 
 let lastTime = null;
@@ -66,20 +78,36 @@ function frame(time) {
   const now = time;
 
   const slowed = isSlowed(letterState, now);
-  const enemyMultiplier = scoreSpeedMultiplier(letterState.score) * (slowed ? SLOWDOWN_FACTOR : 1);
+  const speedMult = scoreSpeedMultiplier(letterState.score) * manualSpeedMultiplier;
+  const enemyMultiplier = speedMult * (slowed ? SLOWDOWN_FACTOR : 1);
   const playerMultiplier = slowed ? SLOWDOWN_FACTOR : 1;
 
   player.update(dt, input, playerMultiplier);
+  trail.update(dt, player.x + player.width / 2, player.y + player.height);
 
   if (input.fire && player.canFire(now)) {
     const spawn = player.fire(now, playerMultiplier);
     bullets.push(new Bullet(spawn.x, spawn.y));
+    playShootSound();
   }
 
-  bullets.forEach((b) => b.update(dt));
-  bullets = bullets.filter((b) => b.active);
+  bullets.forEach((bullet) => bullet.update(dt));
+  bullets = bullets.filter((bullet) => bullet.active);
 
-  enemies.forEach((enemy) => enemy.update(dt, enemyMultiplier, canvas.height));
+  enemies.forEach((enemy) => enemy.update(dt, enemyMultiplier));
+  enemies = enemies.filter((enemy) => !enemy.isOffscreen(canvas.height));
+
+  const activeLetters = enemies.map((enemy) => enemy.letter);
+  const needsCoverage = enemies.length < maxEnemies && !activeLetters.includes(letterState.target);
+
+  spawnTimer -= dt * 1000;
+  if (needsCoverage) {
+    spawnEnemy(letterState.target);
+    spawnTimer = randomSpawnDelay(SPAWN_MIN_MS, SPAWN_MAX_MS) / speedMult;
+  } else if (spawnTimer <= 0 && enemies.length < maxEnemies) {
+    spawnEnemy(pickEnemyLetter(activeLetters, letterState.target));
+    spawnTimer = randomSpawnDelay(SPAWN_MIN_MS, SPAWN_MAX_MS) / speedMult;
+  }
 
   hitCheck: for (const bullet of bullets) {
     for (let i = 0; i < enemies.length; i++) {
@@ -89,15 +117,16 @@ function frame(time) {
         const { state, correct } = registerHit(letterState, enemy.letter, now);
         letterState = state;
         showStatus(correct ? "Nice shot!" : "Not that one — slow down!");
-        respawnEnemy(enemy, i);
+        if (correct) playCorrectHitSound();
+        enemies.splice(i, 1);
         updateHud();
         break hitCheck;
       }
     }
   }
-  bullets = bullets.filter((b) => b.active);
+  bullets = bullets.filter((bullet) => bullet.active);
 
-  render(ctx, canvas, player, enemies, bullets);
+  render(ctx, canvas, player, enemies, bullets, trail.particles);
   requestAnimationFrame(frame);
 }
 

@@ -49,6 +49,52 @@ body {
   margin-bottom: 12px;
 }
 
+#ship-control {
+  margin-bottom: 14px;
+}
+
+#ship-count-label {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+.panel-btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 2px solid #4dd8ff;
+  background: #161a40;
+  color: #f4f4f9;
+  cursor: pointer;
+}
+
+.panel-btn:active {
+  background: #4dd8ff;
+  color: #05061a;
+}
+
+.panel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#speed-control {
+  margin-bottom: 14px;
+}
+
+#speed-label {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+#speed-slider {
+  width: 100%;
+  accent-color: #4dd8ff;
+}
+
 #status-message {
   min-height: 1.5em;
   font-size: 1rem;
