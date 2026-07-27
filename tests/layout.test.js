@@ -25,3 +25,10 @@ test("computeFitSize returns the exact container size when it already matches th
   assert.ok(Math.abs(width - 480) < 1e-6);
   assert.ok(Math.abs(height - 600) < 1e-6);
 });
+
+test("computeFitSize applies the scale factor proportionally", () => {
+  const full = computeFitSize(480, 600, CANVAS_ASPECT_RATIO, 1);
+  const scaled = computeFitSize(480, 600, CANVAS_ASPECT_RATIO, 0.8);
+  assert.ok(Math.abs(scaled.width - full.width * 0.8) < 1e-6);
+  assert.ok(Math.abs(scaled.height - full.height * 0.8) < 1e-6);
+});

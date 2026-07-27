@@ -180,7 +180,7 @@ body {
     align-items: stretch;
     width: 100%;
     height: 100%;
-    gap: 6px;
+    gap: 4px;
     padding: 0;
   }
 
@@ -191,24 +191,24 @@ body {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 4px 12px;
-    padding: 8px 12px;
+    gap: 3px 8px;
+    padding: 6px 10px;
     text-align: left;
   }
 
   #target-label {
     width: 100%;
-    font-size: 0.7rem;
+    font-size: 0.55rem;
     margin-bottom: 0;
   }
 
   #target-letter {
-    font-size: 1.9rem;
+    font-size: 1.5rem;
     margin-bottom: 0;
   }
 
   #score-label {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     margin-bottom: 0;
   }
 
@@ -216,15 +216,15 @@ body {
   #speed-control {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     margin-bottom: 0;
-    flex: 1 1 150px;
+    flex: 1 1 120px;
   }
 
   #ship-count-label,
   #speed-label {
     margin-bottom: 0;
-    font-size: 0.7rem;
+    font-size: 0.55rem;
     white-space: nowrap;
   }
 
@@ -233,28 +233,28 @@ body {
   }
 
   #mode-control {
-    flex: 1 1 150px;
-    gap: 4px;
+    flex: 1 1 120px;
+    gap: 3px;
     margin-bottom: 0;
   }
 
   .panel-btn,
   .panel-select {
-    padding: 5px 4px;
-    font-size: 0.7rem;
+    padding: 4px 3px;
+    font-size: 0.55rem;
   }
 
   #status-message {
     width: 100%;
-    min-height: 1.1em;
-    font-size: 0.75rem;
+    min-height: 0.9em;
+    font-size: 0.6rem;
   }
 
   #game-area {
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
-    gap: 8px;
+    gap: 6px;
   }
 
   #game-canvas {
@@ -263,12 +263,12 @@ body {
 
   #touch-controls {
     flex: 0 0 auto;
-    gap: 10px;
+    gap: 8px;
   }
 
   .touch-btn {
-    width: 56px;
-    height: 44px;
-    font-size: 1.2rem;
+    width: 45px;
+    height: 35px;
+    font-size: 0.95rem;
   }
 }

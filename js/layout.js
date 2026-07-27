@@ -1,8 +1,10 @@
 export const CANVAS_ASPECT_RATIO = 480 / 600;
+export const MOBILE_CANVAS_SCALE = 0.8;
+export const MOBILE_BREAKPOINT_PX = 720;
 
-export function computeFitSize(availableWidth, availableHeight, aspectRatio) {
-  const safeWidth = Math.max(0, availableWidth);
-  const safeHeight = Math.max(0, availableHeight);
+export function computeFitSize(availableWidth, availableHeight, aspectRatio, scale = 1) {
+  const safeWidth = Math.max(0, availableWidth) * scale;
+  const safeHeight = Math.max(0, availableHeight) * scale;
 
   let width = safeWidth;
   let height = width / aspectRatio;
@@ -15,20 +17,26 @@ export function computeFitSize(availableWidth, availableHeight, aspectRatio) {
   return { width, height };
 }
 
-export function fitCanvasToContainer(canvas, container, reservedHeight) {
+export function fitCanvasToContainer(canvas, container, reservedHeight, scale = 1) {
   const { width, height } = computeFitSize(
     container.clientWidth,
     container.clientHeight - reservedHeight,
-    CANVAS_ASPECT_RATIO
+    CANVAS_ASPECT_RATIO,
+    scale
   );
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
 }
 
 export function watchCanvasFit(canvas, container, reservedEl) {
+  const isMobileViewport = () =>
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
+
   const update = () => {
     const reservedHeight = reservedEl ? reservedEl.offsetHeight : 0;
-    fitCanvasToContainer(canvas, container, reservedHeight);
+    const scale = isMobileViewport() ? MOBILE_CANVAS_SCALE : 1;
+    fitCanvasToContainer(canvas, container, reservedHeight, scale);
   };
 
   update();
