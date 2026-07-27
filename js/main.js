@@ -184,11 +184,11 @@ function frame(time) {
     for (let i = 0; i < enemies.length; i++) {
       const enemy = enemies[i];
       if (rectsOverlap(bullet, enemy)) {
-        bullet.active = false;
         const { state, correct } = registerHit(letterState, enemy.letter, now);
         letterState = state;
         showStatus(correct ? "Nice shot!" : "Not that one — slow down!");
         if (correct) {
+          bullet.active = false;
           playCorrectHitSound();
           if (listenMode) speakLetter(letterState.target);
           enemies.splice(i, 1);
