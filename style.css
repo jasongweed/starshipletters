@@ -95,6 +95,23 @@ body {
   accent-color: #4dd8ff;
 }
 
+#mode-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.panel-select {
+  width: 100%;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  border-radius: 10px;
+  border: 2px solid #4dd8ff;
+  background: #161a40;
+  color: #f4f4f9;
+}
+
 #status-message {
   min-height: 1.5em;
   font-size: 1rem;

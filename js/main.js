@@ -12,10 +12,12 @@ import {
 } from "./letterSequence.js";
 import { createTrailEmitter } from "./particles.js";
 import { playShootSound, playCorrectHitSound } from "./audio.js";
+import { speakLetter, initVoices, setVoice, pickPreferredVoice } from "./speech.js";
 import { render } from "./render.js";
 
 const canvas = document.getElementById("game-canvas");
 const ctx = canvas.getContext("2d");
+const targetLabelEl = document.getElementById("target-label");
 const targetLetterEl = document.getElementById("target-letter");
 const scoreEl = document.getElementById("score");
 const statusEl = document.getElementById("status-message");
@@ -23,6 +25,9 @@ const moreShipsBtn = document.getElementById("btn-more-ships");
 const shipCountEl = document.getElementById("ship-count");
 const speedSlider = document.getElementById("speed-slider");
 const speedValueEl = document.getElementById("speed-value");
+const modeToggleBtn = document.getElementById("btn-mode-toggle");
+const replayBtn = document.getElementById("btn-replay-sound");
+const voiceSelect = document.getElementById("voice-select");
 
 const SPAWN_MIN_MS = 500;
 const SPAWN_MAX_MS = 1400;
@@ -37,6 +42,7 @@ let letterState = createInitialState();
 let maxEnemies = 3;
 let spawnTimer = 0;
 let manualSpeedMultiplier = Number(speedSlider.value);
+let listenMode = false;
 
 moreShipsBtn.addEventListener("click", () => {
   maxEnemies = Math.min(MAX_ENEMIES_CAP, maxEnemies + 1);
@@ -49,6 +55,42 @@ speedSlider.addEventListener("input", () => {
   speedValueEl.textContent = `${manualSpeedMultiplier.toFixed(1)}x`;
 });
 
+modeToggleBtn.addEventListener("click", () => {
+  listenMode = !listenMode;
+  modeToggleBtn.textContent = listenMode ? "\u{1F441} Visual Mode" : "\u{1F50A} Listening Mode";
+  replayBtn.hidden = !listenMode;
+  voiceSelect.hidden = !listenMode;
+  updateHud();
+  if (listenMode) speakLetter(letterState.target);
+});
+
+replayBtn.addEventListener("click", () => {
+  speakLetter(letterState.target);
+});
+
+voiceSelect.addEventListener("change", () => {
+  setVoice(voiceSelect.value);
+});
+
+initVoices((voices) => {
+  const englishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("en"));
+  const listedVoices = englishVoices.length ? englishVoices : voices;
+
+  voiceSelect.innerHTML = "";
+  listedVoices.forEach((voice) => {
+    const option = document.createElement("option");
+    option.value = voice.voiceURI;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    voiceSelect.appendChild(option);
+  });
+
+  const preferred = pickPreferredVoice(listedVoices);
+  if (preferred) {
+    voiceSelect.value = preferred.voiceURI;
+    setVoice(preferred.voiceURI);
+  }
+});
+
 let statusTimeoutId = null;
 function showStatus(message) {
   statusEl.textContent = message;
@@ -59,7 +101,13 @@ function showStatus(message) {
 }
 
 function updateHud() {
-  targetLetterEl.textContent = letterState.target;
+  if (listenMode) {
+    targetLabelEl.textContent = "Listen and shoot:";
+    targetLetterEl.textContent = "\u{1F50A}";
+  } else {
+    targetLabelEl.textContent = "Find and shoot:";
+    targetLetterEl.textContent = letterState.target;
+  }
   scoreEl.textContent = String(letterState.score);
 }
 
@@ -117,7 +165,10 @@ function frame(time) {
         const { state, correct } = registerHit(letterState, enemy.letter, now);
         letterState = state;
         showStatus(correct ? "Nice shot!" : "Not that one — slow down!");
-        if (correct) playCorrectHitSound();
+        if (correct) {
+          playCorrectHitSound();
+          if (listenMode) speakLetter(letterState.target);
+        }
         enemies.splice(i, 1);
         updateHud();
         break hitCheck;

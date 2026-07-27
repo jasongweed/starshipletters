@@ -12,7 +12,9 @@ test("randomSpawnX stays within the canvas bounds", () => {
 test("randomSpawnX avoids overlapping existing ships when there's room", () => {
   const existingX = [50, 300];
   for (let i = 0; i < 50; i++) {
-    const x = randomSpawnX(480, existingX);
+    // Generous attempts count so the "give up and return any x" fallback
+    // essentially never triggers here, keeping this assertion non-flaky.
+    const x = randomSpawnX(480, existingX, 30);
     const tooClose = existingX.some((other) => Math.abs(other - x) < ENEMY_WIDTH * 1.3);
     assert.equal(tooClose, false);
   }
