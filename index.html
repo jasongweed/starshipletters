@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starship Letters</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="target-panel">
+      <div id="target-label">Find and shoot:</div>
+      <div id="target-letter">A</div>
+      <div id="score-label">Score: <span id="score">0</span></div>
+      <div id="status-message"></div>
+    </aside>
+
+    <main id="game-area">
+      <canvas id="game-canvas" width="480" height="600"></canvas>
+      <div id="touch-controls">
+        <button id="btn-left" class="touch-btn" aria-label="Move left">&#8592;</button>
+        <button id="btn-fire" class="touch-btn" aria-label="Fire">&#9679;</button>
+        <button id="btn-right" class="touch-btn" aria-label="Move right">&#8594;</button>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
