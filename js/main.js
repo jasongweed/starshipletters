@@ -191,8 +191,8 @@ function frame(time) {
         if (correct) {
           playCorrectHitSound();
           if (listenMode) speakLetter(letterState.target);
+          enemies.splice(i, 1);
         }
-        enemies.splice(i, 1);
         updateHud();
         break hitCheck;
       }
