@@ -13,6 +13,7 @@ import {
 import { createTrailEmitter } from "./particles.js";
 import { playShootSound, playCorrectHitSound } from "./audio.js";
 import { speakLetter, initVoices, setVoice, pickPreferredVoice } from "./speech.js";
+import { createGamepadState } from "./gamepad.js";
 import { render } from "./render.js";
 
 const canvas = document.getElementById("game-canvas");
@@ -34,6 +35,7 @@ const SPAWN_MAX_MS = 1400;
 const MAX_ENEMIES_CAP = 8;
 
 const input = createInputState();
+const gamepadState = createGamepadState();
 const player = new Player(canvas.width, canvas.height);
 const trail = createTrailEmitter();
 let bullets = [];
@@ -71,6 +73,9 @@ replayBtn.addEventListener("click", () => {
 voiceSelect.addEventListener("change", () => {
   setVoice(voiceSelect.value);
 });
+
+window.addEventListener("gamepadconnected", () => showStatus("\u{1F3AE} Gamepad connected"));
+window.addEventListener("gamepaddisconnected", () => showStatus("\u{1F3AE} Gamepad disconnected"));
 
 initVoices((voices) => {
   const englishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith("en"));
@@ -130,10 +135,16 @@ function frame(time) {
   const enemyMultiplier = speedMult * (slowed ? SLOWDOWN_FACTOR : 1);
   const playerMultiplier = slowed ? SLOWDOWN_FACTOR : 1;
 
-  player.update(dt, input, playerMultiplier);
+  const gamepadInput = gamepadState.poll();
+  const combinedInput = {
+    left: input.left || gamepadInput.left,
+    right: input.right || gamepadInput.right,
+  };
+
+  player.update(dt, combinedInput, playerMultiplier);
   trail.update(dt, player.x + player.width / 2, player.y + player.height);
 
-  if (input.fire && player.canFire(now)) {
+  if (player.canFire(now) && (input.fire || gamepadInput.firePulse)) {
     const spawn = player.fire(now, playerMultiplier);
     bullets.push(new Bullet(spawn.x, spawn.y));
     playShootSound();

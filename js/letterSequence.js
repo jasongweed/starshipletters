@@ -5,7 +5,7 @@ export const SLOWDOWN_DURATION_MS = 2500;
 export const SLOWDOWN_FACTOR = 0.4;
 export const SPEED_SCORE_CAP = 200;
 export const MAX_SCORE_SPEED_MULTIPLIER = 3;
-export const DUPLICATE_TARGET_CHANCE = 0.35;
+export const DUPLICATE_TARGET_CHANCE = 0.05;
 
 export function randomLetter(exclude) {
   const pool = exclude ? ALPHABET.filter((letter) => letter !== exclude) : ALPHABET;
