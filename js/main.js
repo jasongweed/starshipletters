@@ -186,7 +186,6 @@ function frame(time) {
       if (rectsOverlap(bullet, enemy)) {
         const { state, correct } = registerHit(letterState, enemy.letter, now);
         letterState = state;
-        showStatus(correct ? "Nice shot!" : "Not that one — slow down!");
         if (correct) {
           bullet.active = false;
           playCorrectHitSound();
