@@ -1,4 +1,5 @@
 let audioCtx = null;
+let unlocked = false;
 
 function getContext() {
   if (!audioCtx) {
@@ -9,6 +10,23 @@ function getContext() {
     audioCtx.resume();
   }
   return audioCtx;
+}
+
+// iOS Safari/WebKit only allows an AudioContext to actually start producing
+// sound if it's created/resumed synchronously inside a genuine user-gesture
+// handler (touchstart/mousedown/keydown), not from inside a game loop tick.
+// Call this directly from such a handler once, before any other playback.
+export function unlockAudio() {
+  if (unlocked) return;
+  const ctx = getContext();
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = 0;
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  oscillator.start(ctx.currentTime);
+  oscillator.stop(ctx.currentTime + 0.001);
+  unlocked = true;
 }
 
 function playBlip(ctx, { startFrequency, endFrequency, duration, type, gain, startTime }) {

@@ -1,8 +1,21 @@
 let voices = [];
 let selectedVoiceURI = null;
+let unlocked = false;
 
 export function isSpeechSupported() {
   return typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+// Like unlockAudio() in audio.js: iOS Safari/WebKit only allows
+// speechSynthesis.speak() to actually be heard if it's first called
+// synchronously inside a genuine user-gesture handler. Call this once
+// from such a handler before any other speech playback.
+export function unlockSpeech() {
+  if (unlocked || !isSpeechSupported()) return;
+  const utterance = new SpeechSynthesisUtterance(" ");
+  utterance.volume = 0;
+  window.speechSynthesis.speak(utterance);
+  unlocked = true;
 }
 
 export function pickPreferredVoice(candidateVoices) {

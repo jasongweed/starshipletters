@@ -11,8 +11,8 @@ import {
   SLOWDOWN_FACTOR,
 } from "./letterSequence.js";
 import { createTrailEmitter } from "./particles.js";
-import { playShootSound, playCorrectHitSound } from "./audio.js";
-import { speakLetter, initVoices, setVoice, pickPreferredVoice } from "./speech.js";
+import { playShootSound, playCorrectHitSound, unlockAudio } from "./audio.js";
+import { speakLetter, initVoices, setVoice, pickPreferredVoice, unlockSpeech } from "./speech.js";
 import { createGamepadState } from "./gamepad.js";
 import { watchCanvasFit } from "./layout.js";
 import { render } from "./render.js";
@@ -42,6 +42,14 @@ const gamepadState = createGamepadState();
 const player = new Player(canvas.width, canvas.height);
 const trail = createTrailEmitter();
 watchCanvasFit(canvas, gameArea, touchControls);
+
+function unlockAudioOnFirstInput() {
+  unlockAudio();
+  unlockSpeech();
+}
+window.addEventListener("touchstart", unlockAudioOnFirstInput, { once: true, passive: true });
+window.addEventListener("mousedown", unlockAudioOnFirstInput, { once: true });
+window.addEventListener("keydown", unlockAudioOnFirstInput, { once: true });
 let bullets = [];
 let enemies = [];
 let letterState = createInitialState();
