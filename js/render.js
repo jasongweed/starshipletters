@@ -1,3 +1,11 @@
+import { getSymbolKind } from "./letterSequence.js";
+
+const SHIP_COLORS = {
+  uppercase: "#ff6b6b",
+  lowercase: "#4ade80",
+  number: "#a78bfa",
+};
+
 function drawTrail(ctx, particles) {
   for (const particle of particles) {
     const alpha = 1 - particle.progress;
@@ -76,7 +84,7 @@ export function render(ctx, canvas, player, enemies, bullets, trailParticles) {
   ctx.textBaseline = "middle";
 
   for (const enemy of enemies) {
-    ctx.fillStyle = "#ff6b6b";
+    ctx.fillStyle = SHIP_COLORS[getSymbolKind(enemy.letter)];
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
     ctx.fillStyle = "#ffffff";
     ctx.fillText(enemy.letter, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);

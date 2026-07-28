@@ -15,6 +15,7 @@ import {
   isSlowed,
   scoreSpeedMultiplier,
   pickEnemyLetter,
+  buildSymbolPool,
   SLOWDOWN_FACTOR,
 } from "./letterSequence.js";
 import { createTrailEmitter } from "./particles.js";
@@ -40,6 +41,8 @@ const modeToggleBtn = document.getElementById("btn-mode-toggle");
 const replayBtn = document.getElementById("btn-replay-sound");
 const voiceSelect = document.getElementById("voice-select");
 const crossfireToggleBtn = document.getElementById("btn-crossfire-toggle");
+const lowercaseToggleBtn = document.getElementById("btn-lowercase-toggle");
+const numbersToggleBtn = document.getElementById("btn-numbers-toggle");
 
 const SPAWN_MIN_MS = 500;
 const SPAWN_MAX_MS = 1400;
@@ -60,12 +63,19 @@ window.addEventListener("mousedown", unlockAudioOnFirstInput, { once: true });
 window.addEventListener("keydown", unlockAudioOnFirstInput, { once: true });
 let bullets = [];
 let enemies = [];
-let letterState = createInitialState();
+let includeLowercase = false;
+let includeNumbers = false;
+let symbolPool = buildSymbolPool({ includeLowercase, includeNumbers });
+let letterState = createInitialState(symbolPool);
 let maxEnemies = 3;
 let spawnTimer = 0;
 let manualSpeedMultiplier = Number(speedSlider.value);
 let listenMode = false;
 let crossfireMode = false;
+
+function refreshSymbolPool() {
+  symbolPool = buildSymbolPool({ includeLowercase, includeNumbers });
+}
 
 moreShipsBtn.addEventListener("click", () => {
   maxEnemies = Math.min(MAX_ENEMIES_CAP, maxEnemies + 1);
@@ -95,6 +105,18 @@ crossfireToggleBtn.addEventListener("click", () => {
   crossfireMode = !crossfireMode;
   crossfireToggleBtn.textContent = crossfireMode ? "\u{1F680} Classic Mode" : "\u{1F6F8} Crossfire Mode";
   if (!crossfireMode) player.resetToBottom();
+});
+
+lowercaseToggleBtn.addEventListener("click", () => {
+  includeLowercase = !includeLowercase;
+  lowercaseToggleBtn.textContent = includeLowercase ? "\u{1F521} Remove Lowercase" : "\u{1F521} Add Lowercase";
+  refreshSymbolPool();
+});
+
+numbersToggleBtn.addEventListener("click", () => {
+  includeNumbers = !includeNumbers;
+  numbersToggleBtn.textContent = includeNumbers ? "\u{1F522} Remove Numbers" : "\u{1F522} Add Numbers";
+  refreshSymbolPool();
 });
 
 voiceSelect.addEventListener("change", () => {
@@ -198,7 +220,7 @@ function frame(time) {
     spawnEnemy(letterState.target);
     spawnTimer = randomSpawnDelay(SPAWN_MIN_MS, SPAWN_MAX_MS) / speedMult;
   } else if (spawnTimer <= 0 && enemies.length < maxEnemies) {
-    spawnEnemy(pickEnemyLetter(activeLetters, letterState.target));
+    spawnEnemy(pickEnemyLetter(activeLetters, letterState.target, symbolPool));
     spawnTimer = randomSpawnDelay(SPAWN_MIN_MS, SPAWN_MAX_MS) / speedMult;
   }
 
@@ -206,7 +228,7 @@ function frame(time) {
     for (let i = 0; i < enemies.length; i++) {
       const enemy = enemies[i];
       if (rectsOverlap(bullet, enemy)) {
-        const { state, correct } = registerHit(letterState, enemy.letter, now);
+        const { state, correct } = registerHit(letterState, enemy.letter, now, symbolPool);
         letterState = state;
         if (correct) {
           bullet.active = false;

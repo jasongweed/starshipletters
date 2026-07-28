@@ -2,12 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ALPHABET,
+  LOWERCASE_ALPHABET,
+  NUMBER_SYMBOLS,
   randomLetter,
   createInitialState,
   isSlowed,
   scoreSpeedMultiplier,
   registerHit,
   pickEnemyLetter,
+  buildSymbolPool,
+  getSymbolKind,
   SLOWDOWN_DURATION_MS,
   SLOWDOWN_FACTOR,
   SCORE_PER_HIT,
@@ -91,4 +95,46 @@ test("pickEnemyLetter sometimes duplicates the target so multiple correct ships 
     }
   }
   assert.ok(sawDuplicate);
+});
+
+test("buildSymbolPool defaults to just the uppercase alphabet", () => {
+  const pool = buildSymbolPool();
+  assert.deepEqual(pool, ALPHABET);
+});
+
+test("buildSymbolPool adds lowercase letters and numbers when requested", () => {
+  const pool = buildSymbolPool({ includeLowercase: true, includeNumbers: true });
+  assert.equal(pool.length, ALPHABET.length + LOWERCASE_ALPHABET.length + NUMBER_SYMBOLS.length);
+  assert.ok(LOWERCASE_ALPHABET.every((letter) => pool.includes(letter)));
+  assert.ok(NUMBER_SYMBOLS.every((number) => pool.includes(number)));
+});
+
+test("getSymbolKind classifies uppercase, lowercase, and number symbols", () => {
+  assert.equal(getSymbolKind("A"), "uppercase");
+  assert.equal(getSymbolKind("z"), "lowercase");
+  assert.equal(getSymbolKind("7"), "number");
+  assert.equal(getSymbolKind("20"), "number");
+});
+
+test("randomLetter draws from a custom pool when one is given", () => {
+  const pool = ["1", "2", "3"];
+  for (let i = 0; i < 50; i++) {
+    assert.ok(pool.includes(randomLetter(undefined, pool)));
+  }
+});
+
+test("registerHit picks the next target from a custom pool", () => {
+  const pool = ["1", "2", "3"];
+  const state = { target: "1", score: 0, slowdownUntil: 0 };
+  for (let i = 0; i < 50; i++) {
+    const { state: next } = registerHit(state, "1", 0, pool);
+    assert.ok(pool.includes(next.target));
+  }
+});
+
+test("pickEnemyLetter draws from a custom pool when the target is covered", () => {
+  const pool = ["1", "2", "3"];
+  for (let i = 0; i < 50; i++) {
+    assert.ok(pool.includes(pickEnemyLetter(["1", "2"], "1", pool)));
+  }
 });
