@@ -23,6 +23,7 @@ import { playShootSound, playCorrectHitSound, unlockAudio } from "./audio.js";
 import { speakLetter, initVoices, setVoice, pickPreferredVoice, unlockSpeech } from "./speech.js";
 import { createGamepadState } from "./gamepad.js";
 import { watchCanvasFit } from "./layout.js";
+import { createStarfield } from "./starfield.js";
 import { render } from "./render.js";
 
 const canvas = document.getElementById("game-canvas");
@@ -41,6 +42,7 @@ const modeToggleBtn = document.getElementById("btn-mode-toggle");
 const replayBtn = document.getElementById("btn-replay-sound");
 const voiceSelect = document.getElementById("voice-select");
 const crossfireToggleBtn = document.getElementById("btn-crossfire-toggle");
+const uppercaseToggleBtn = document.getElementById("btn-uppercase-toggle");
 const lowercaseToggleBtn = document.getElementById("btn-lowercase-toggle");
 const numbersToggleBtn = document.getElementById("btn-numbers-toggle");
 
@@ -52,6 +54,7 @@ const input = createInputState();
 const gamepadState = createGamepadState();
 const player = new Player(canvas.width, canvas.height);
 const trail = createTrailEmitter();
+const starfield = createStarfield(canvas.width, canvas.height);
 watchCanvasFit(canvas, gameArea, touchControls);
 
 function unlockAudioOnFirstInput() {
@@ -63,9 +66,10 @@ window.addEventListener("mousedown", unlockAudioOnFirstInput, { once: true });
 window.addEventListener("keydown", unlockAudioOnFirstInput, { once: true });
 let bullets = [];
 let enemies = [];
+let includeUppercase = true;
 let includeLowercase = false;
 let includeNumbers = false;
-let symbolPool = buildSymbolPool({ includeLowercase, includeNumbers });
+let symbolPool = buildSymbolPool({ includeUppercase, includeLowercase, includeNumbers });
 let letterState = createInitialState(symbolPool);
 let maxEnemies = 3;
 let spawnTimer = 0;
@@ -74,7 +78,13 @@ let listenMode = false;
 let crossfireMode = false;
 
 function refreshSymbolPool() {
-  symbolPool = buildSymbolPool({ includeLowercase, includeNumbers });
+  symbolPool = buildSymbolPool({ includeUppercase, includeLowercase, includeNumbers });
+}
+
+// Returns false (and blocks the toggle) if turning this category off would
+// leave all three symbol categories disabled, which would empty the pool.
+function canDisable(otherA, otherB) {
+  return otherA || otherB;
 }
 
 moreShipsBtn.addEventListener("click", () => {
@@ -107,13 +117,31 @@ crossfireToggleBtn.addEventListener("click", () => {
   if (!crossfireMode) player.resetToBottom();
 });
 
+uppercaseToggleBtn.addEventListener("click", () => {
+  if (includeUppercase && !canDisable(includeLowercase, includeNumbers)) {
+    showStatus("Keep at least one letter type on");
+    return;
+  }
+  includeUppercase = !includeUppercase;
+  uppercaseToggleBtn.textContent = includeUppercase ? "\u{1F520} Remove Uppercase" : "\u{1F520} Add Uppercase";
+  refreshSymbolPool();
+});
+
 lowercaseToggleBtn.addEventListener("click", () => {
+  if (includeLowercase && !canDisable(includeUppercase, includeNumbers)) {
+    showStatus("Keep at least one letter type on");
+    return;
+  }
   includeLowercase = !includeLowercase;
   lowercaseToggleBtn.textContent = includeLowercase ? "\u{1F521} Remove Lowercase" : "\u{1F521} Add Lowercase";
   refreshSymbolPool();
 });
 
 numbersToggleBtn.addEventListener("click", () => {
+  if (includeNumbers && !canDisable(includeUppercase, includeLowercase)) {
+    showStatus("Keep at least one letter type on");
+    return;
+  }
   includeNumbers = !includeNumbers;
   numbersToggleBtn.textContent = includeNumbers ? "\u{1F522} Remove Numbers" : "\u{1F522} Add Numbers";
   refreshSymbolPool();
@@ -199,6 +227,7 @@ function frame(time) {
 
   player.update(dt, combinedInput, playerMultiplier);
   trail.update(dt, player.x + player.width / 2, player.y + player.height);
+  starfield.update(dt);
 
   if (player.canFire(now) && (input.fire || gamepadInput.firePulse)) {
     const spawn = player.fire(now, playerMultiplier);
@@ -243,7 +272,7 @@ function frame(time) {
   }
   bullets = bullets.filter((bullet) => bullet.active);
 
-  render(ctx, canvas, player, enemies, bullets, trail.particles);
+  render(ctx, canvas, player, enemies, bullets, trail.particles, starfield.stars);
   requestAnimationFrame(frame);
 }
 

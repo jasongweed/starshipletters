@@ -6,6 +6,15 @@ const SHIP_COLORS = {
   number: "#a78bfa",
 };
 
+function drawStarfield(ctx, stars) {
+  for (const star of stars) {
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 function drawTrail(ctx, particles) {
   for (const particle of particles) {
     const alpha = 1 - particle.progress;
@@ -73,9 +82,10 @@ function drawPlayer(ctx, player) {
   ctx.fill();
 }
 
-export function render(ctx, canvas, player, enemies, bullets, trailParticles) {
+export function render(ctx, canvas, player, enemies, bullets, trailParticles, stars) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  drawStarfield(ctx, stars);
   drawTrail(ctx, trailParticles);
   drawPlayer(ctx, player);
 

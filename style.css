@@ -11,6 +11,13 @@ body {
   background: #0b0e2a;
   color: #f4f4f9;
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {

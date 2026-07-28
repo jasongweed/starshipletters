@@ -9,8 +9,9 @@ export const SPEED_SCORE_CAP = 200;
 export const MAX_SCORE_SPEED_MULTIPLIER = 3;
 export const DUPLICATE_TARGET_CHANCE = 0.05;
 
-export function buildSymbolPool({ includeLowercase = false, includeNumbers = false } = {}) {
-  let pool = ALPHABET.slice();
+export function buildSymbolPool({ includeUppercase = true, includeLowercase = false, includeNumbers = false } = {}) {
+  let pool = [];
+  if (includeUppercase) pool = pool.concat(ALPHABET);
   if (includeLowercase) pool = pool.concat(LOWERCASE_ALPHABET);
   if (includeNumbers) pool = pool.concat(NUMBER_SYMBOLS);
   return pool;

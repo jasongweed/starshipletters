@@ -109,6 +109,11 @@ test("buildSymbolPool adds lowercase letters and numbers when requested", () => 
   assert.ok(NUMBER_SYMBOLS.every((number) => pool.includes(number)));
 });
 
+test("buildSymbolPool can exclude uppercase when includeUppercase is false", () => {
+  const pool = buildSymbolPool({ includeUppercase: false, includeLowercase: true });
+  assert.deepEqual(pool, LOWERCASE_ALPHABET);
+});
+
 test("getSymbolKind classifies uppercase, lowercase, and number symbols", () => {
   assert.equal(getSymbolKind("A"), "uppercase");
   assert.equal(getSymbolKind("z"), "lowercase");
