@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isStickLeft, isStickRight, isTriggerDown, computeFirePulse } from "../js/gamepad.js";
+import {
+  isStickLeft,
+  isStickRight,
+  isStickUp,
+  isStickDown,
+  isTriggerDown,
+  computeFirePulse,
+} from "../js/gamepad.js";
 
 test("isStickLeft/isStickRight respect the deadzone", () => {
   assert.equal(isStickLeft(-0.1), false);
@@ -12,6 +19,19 @@ test("isStickLeft/isStickRight respect the deadzone", () => {
 test("isStickLeft and isStickRight are never both true", () => {
   for (let x = -1; x <= 1; x += 0.1) {
     assert.ok(!(isStickLeft(x) && isStickRight(x)));
+  }
+});
+
+test("isStickUp/isStickDown respect the deadzone", () => {
+  assert.equal(isStickUp(-0.1), false);
+  assert.equal(isStickUp(-0.5), true);
+  assert.equal(isStickDown(0.1), false);
+  assert.equal(isStickDown(0.5), true);
+});
+
+test("isStickUp and isStickDown are never both true", () => {
+  for (let y = -1; y <= 1; y += 0.1) {
+    assert.ok(!(isStickUp(y) && isStickDown(y)));
   }
 });
 

@@ -1,11 +1,13 @@
 const KEY_MAP = {
   ArrowLeft: "left",
   ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
   Space: "fire",
 };
 
 export function createInputState() {
-  const state = { left: false, right: false, fire: false };
+  const state = { left: false, right: false, up: false, down: false, fire: false };
 
   window.addEventListener("keydown", (e) => {
     const key = KEY_MAP[e.code];

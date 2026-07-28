@@ -1,6 +1,13 @@
 import { createInputState } from "./input.js";
 import { Player } from "./player.js";
-import { Enemy, ENEMY_HEIGHT, randomSpawnX, randomSpawnDelay } from "./enemy.js";
+import {
+  Enemy,
+  ENEMY_WIDTH,
+  ENEMY_HEIGHT,
+  randomSpawnX,
+  randomSpawnDelay,
+  randomCrossfireSpawn,
+} from "./enemy.js";
 import { Bullet, rectsOverlap } from "./bullets.js";
 import {
   createInitialState,
@@ -32,6 +39,7 @@ const speedValueEl = document.getElementById("speed-value");
 const modeToggleBtn = document.getElementById("btn-mode-toggle");
 const replayBtn = document.getElementById("btn-replay-sound");
 const voiceSelect = document.getElementById("voice-select");
+const crossfireToggleBtn = document.getElementById("btn-crossfire-toggle");
 
 const SPAWN_MIN_MS = 500;
 const SPAWN_MAX_MS = 1400;
@@ -57,6 +65,7 @@ let maxEnemies = 3;
 let spawnTimer = 0;
 let manualSpeedMultiplier = Number(speedSlider.value);
 let listenMode = false;
+let crossfireMode = false;
 
 moreShipsBtn.addEventListener("click", () => {
   maxEnemies = Math.min(MAX_ENEMIES_CAP, maxEnemies + 1);
@@ -80,6 +89,12 @@ modeToggleBtn.addEventListener("click", () => {
 
 replayBtn.addEventListener("click", () => {
   speakLetter(letterState.target);
+});
+
+crossfireToggleBtn.addEventListener("click", () => {
+  crossfireMode = !crossfireMode;
+  crossfireToggleBtn.textContent = crossfireMode ? "\u{1F680} Classic Mode" : "\u{1F6F8} Crossfire Mode";
+  if (!crossfireMode) player.resetToBottom();
 });
 
 voiceSelect.addEventListener("change", () => {
@@ -129,6 +144,11 @@ function updateHud() {
 }
 
 function spawnEnemy(letter) {
+  if (crossfireMode) {
+    const spawn = randomCrossfireSpawn(canvas.width, canvas.height, ENEMY_WIDTH, ENEMY_HEIGHT);
+    enemies.push(new Enemy(spawn.x, spawn.y, letter, spawn.vx, spawn.vy));
+    return;
+  }
   const x = randomSpawnX(canvas.width, enemies.map((e) => e.x));
   const y = -ENEMY_HEIGHT - Math.random() * 40;
   enemies.push(new Enemy(x, y, letter));
@@ -151,6 +171,8 @@ function frame(time) {
   const combinedInput = {
     left: input.left || gamepadInput.left,
     right: input.right || gamepadInput.right,
+    up: crossfireMode && (input.up || gamepadInput.up),
+    down: crossfireMode && (input.down || gamepadInput.down),
   };
 
   player.update(dt, combinedInput, playerMultiplier);
@@ -166,7 +188,7 @@ function frame(time) {
   bullets = bullets.filter((bullet) => bullet.active);
 
   enemies.forEach((enemy) => enemy.update(dt, enemyMultiplier));
-  enemies = enemies.filter((enemy) => !enemy.isOffscreen(canvas.height));
+  enemies = enemies.filter((enemy) => !enemy.isOffscreen(canvas.width, canvas.height));
 
   const activeLetters = enemies.map((enemy) => enemy.letter);
   const needsCoverage = enemies.length < maxEnemies && !activeLetters.includes(letterState.target);

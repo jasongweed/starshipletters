@@ -112,6 +112,10 @@ body {
   color: #f4f4f9;
 }
 
+#crossfire-control {
+  margin-bottom: 14px;
+}
+
 #status-message {
   min-height: 1.5em;
   font-size: 1rem;
@@ -235,6 +239,11 @@ body {
   #mode-control {
     flex: 1 1 120px;
     gap: 3px;
+    margin-bottom: 0;
+  }
+
+  #crossfire-control {
+    flex: 1 1 120px;
     margin-bottom: 0;
   }
 
